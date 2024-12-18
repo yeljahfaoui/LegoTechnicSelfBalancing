@@ -2,7 +2,7 @@ from pybricks import version
 from pybricks.tools import wait, StopWatch
 from pybricks.hubs import TechnicHub
 from pybricks.pupdevices import Motor
-from pybricks.parameters import Port, Axis
+from pybricks.parameters import Port
 
 
 motor_a = Motor(Port.A)
