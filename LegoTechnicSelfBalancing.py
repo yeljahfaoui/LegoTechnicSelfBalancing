@@ -2,11 +2,11 @@ from pybricks import version
 from pybricks.tools import wait, StopWatch
 from pybricks.hubs import TechnicHub
 from pybricks.pupdevices import Motor
-from pybricks.parameters import Port
+from pybricks.parameters import Port, Direction, Axis
 
 
 motor_a = Motor(Port.A)
-motor_b = Motor(Port.B)
+motor_b = Motor(Port.B, Direction.COUNTERCLOCKWISE)
 
 hub = TechnicHub()
 
@@ -14,29 +14,30 @@ target_angle = 0
 prev_error = 0
 integral = 0
 
-time_delta = 5
-angle_delta = 0
+angle = 0
+watch = StopWatch()
+new_time = 0
 
-k_proportional = 20
-k_integral = 0.1
-k_derivative = 0
+kp = 20
+ki = 6
+kd = 0.2
 
 while True:
+    if hub.imu.ready():
+        velocity = hub.imu.angular_velocity()[1]
 
-    velocity = hub.imu.angular_velocity()[1]
+        time = watch.time()
+        time_delta = max(1, (time - new_time)) / 1000
+        new_time = time
 
-    angle_delta += velocity * time_delta / 1000
+        angle += velocity * time_delta
 
-    error = target_angle - angle_delta
-    integral += error * time_delta
-    derivative = (error - prev_error) / time_delta
-    prev_error = error
-    speed = (
-        k_proportional * error +
-        k_integral * integral +
-        k_derivative * derivative)
+        error = target_angle - angle
+        integral += error * time_delta
+        derivative = (error - prev_error) / time_delta
+        prev_error = error
 
-    motor_a.dc(speed)
-    motor_b.dc(-speed)
+        PID = kp * error + ki * integral + kd * derivative
 
-    wait(time_delta)
+        motor_a.dc(PID)
+        motor_b.dc(PID)
